@@ -1,0 +1,10 @@
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+vector_size	model_gen_time
+100	2.07613205909729
