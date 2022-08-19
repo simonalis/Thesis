@@ -32,9 +32,9 @@ if __name__ == "__main__":
 
     os.makedirs(save_to_path, exist_ok=True)
     start = time.time()
-    #sizes = [20,50,100,150,200] 
-   # sizes = list(np.arange(5, 105, 5)) # vector length
-    sizes = [100]
+    #sizes = [20,50,100,150,200]
+    sizes = fragment_creation.sizes # sizes = list(np.arange(5, 105, 5)) # vector length
+    #sizes = [100]
     no_vocab_cnt = 0 # finds if any model type is missed or not
     f = open('model_gen_time_stat.txt', 'a')
     f.write("vector_size"+"\t"+"model_gen_time"+"\n")
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                 print("Fragment", count, "is processed.\n************************")        
             #model = gensim.models.Word2Vec(vocab, min_count=1)
 
-        model = gensim.models.Word2Vec(vocab, vector_size = size, window=5, min_count=1, workers=4) #size=size
+        model = gensim.models.Word2Vec(vocab, vector_size = size, window=5, min_count=1, workers=4)
         model.wv.save_word2vec_format(save_to_path + "byte2vec_model_vecsize_" + str(size))
         #model.save("test_w2v_forensics_model")
         e = time.time()

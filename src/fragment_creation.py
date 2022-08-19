@@ -24,7 +24,12 @@ find chunk of data from within a block.
     length: size of the chunk
 """
 absolute_path = os.path.dirname(os.path.realpath(__file__))
-#absolute_path = "/Users/liskers/Documents/Simona/Byte2Vec/"
+default_size = True
+if default_size == True:
+    sizes = [100]
+else:
+    sizes = list(np.arange(5, 105, 5))  # vector length
+
 def get_foreign_chunk(filename, start, length):
     fobj = open(filename, 'r+b')
     m = mmap.mmap(fobj.fileno(), 0)

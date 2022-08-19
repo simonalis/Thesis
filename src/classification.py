@@ -35,6 +35,10 @@ import sys
 #from yellowbrick.classifier import ConfusionMatrix
 warnings.filterwarnings("ignore")
 import fragment_creation
+import ANN
+
+modelKNN = False
+modelNMSLib = True
 
 # generate a confusion matrix
 def plot_confusion_matrix(cm, classes,
@@ -93,7 +97,8 @@ def plot_conf_matrix_and_save(cnf_matrix,class_names,size,sample_size,save_at):
 def main(s,ratio,k,cross,conf_mat_plot):
     
     save_at = fragment_creation.absolute_path + '/512_4/results_data/'
-    sizes = [100]#list(np.arange(5,105,5))
+    #sizes = [100]#list(np.arange(5,105,5))
+    sizes = fragment_creation.sizes
     sample_size = s
     os.makedirs(save_at, exist_ok=True)
     f = open(save_at+'results_sample_size_'+str(sample_size)+'.txt','w')
@@ -130,33 +135,49 @@ def main(s,ratio,k,cross,conf_mat_plot):
         test_X = test.iloc[:,0:last_data_column]
         # label column
         test_Y = test.data_type
-        model = KNeighborsClassifier(n_neighbors=k).fit(X,y)
-        y_hat = model.predict(test_X)
-        # 10 fold cross validation
-        accuracy = cross_val_score(model, X, y, cv=cross, scoring='accuracy').mean()
-        scoring = ['precision_macro', 'recall_macro']
-        clf = KNeighborsClassifier(n_neighbors=k) 
-        scores = cross_validate(clf, X, y, scoring=scoring, cv=cross, return_train_score=True)
-        precision = scores['test_precision_macro'].mean()
-        recall = scores['test_recall_macro'].mean()
-        print("*********Results**********")
-        print("Avg. Accuracy:", accuracy)
-        print("Precision:", precision)
-        print("Recall:", recall)
-        f.write(str(sizes[i])+ '\t' + str(accuracy) + '\t' + str(precision) + '\t' + str(recall) + '\t'+ str(hamming_loss(test_Y, y_hat)) + '\n')
-        print("Done for vector length:"+ str(sizes[i]) + " and sample size:"+str(sample_size))
-        print("*************************************")
-        # Compute confusion matrix
-        y_test = test_Y
-        y_pred = y_hat
-        class_names = np.unique(y_pred)
-        cnf_matrix = confusion_matrix(y_test, y_pred)
-        np.set_printoptions(precision=2)
-        # save confusion matrix to csv file
-        df_confusion = pd.crosstab(y_test, y_pred)
-        #df_confusion.to_csv(save_at+'confusion_matrix_for_vec_size_'+str(sizes[i])+'_sample_size_'+str(sample_size)+'.csv')
-        if conf_mat_plot == 1:
-            plot_conf_matrix_and_save(cnf_matrix,class_names,sizes[i],sample_size,save_at)
+        if modelKNN:
+            model = KNeighborsClassifier(n_neighbors=k).fit(X,y)
+            y_hat = model.predict(test_X)
+            # 10 fold cross validation
+            accuracy = cross_val_score(model, X, y, cv=cross, scoring='accuracy').mean()
+            scoring = ['precision_macro', 'recall_macro']
+            clf = KNeighborsClassifier(n_neighbors=k)
+            scores = cross_validate(clf, X, y, scoring=scoring, cv=cross, return_train_score=True)
+            precision = scores['test_precision_macro'].mean()
+            recall = scores['test_recall_macro'].mean()
+            print("*********Results**********")
+            print("Avg. Accuracy:", accuracy)
+            print("Precision:", precision)
+            print("Recall:", recall)
+            f.write(str(sizes[i])+ '\t' + str(accuracy) + '\t' + str(precision) + '\t' + str(recall) + '\t'+ str(hamming_loss(test_Y, y_hat)) + '\n')
+            print("Done for vector length:"+ str(sizes[i]) + " and sample size:"+str(sample_size))
+            print("*************************************")
+            # Compute confusion matrix
+            y_test = test_Y
+            y_pred = y_hat
+            class_names = np.unique(y_pred)
+            cnf_matrix = confusion_matrix(y_test, y_pred)
+            np.set_printoptions(precision=2)
+            # save confusion matrix to csv file
+            df_confusion = pd.crosstab(y_test, y_pred)
+            # df_confusion.to_csv(save_at+'confusion_matrix_for_vec_size_'+str(sizes[i])+'_sample_size_'+str(sample_size)+'.csv')
+            if conf_mat_plot == 1:
+                plot_conf_matrix_and_save(cnf_matrix, class_names, sizes[i], sample_size, save_at)
+        elif modelNMSLib:
+            print("modelNMSLib")
+            train_base_path = save_at
+            X_train, y_train,  X_test, y_test = X, y, test_X, test_Y #load_dataset(train_base_path)
+
+            data_type = "file_type_cnn_512_4_dense1_model_" + train_base_path.split("/")[-2]
+            kk = save_at + "/output/{}/"
+            data_output = kk.format(data_type)
+            try:
+                os.makedirs(data_output, exist_ok=False)
+            except:
+                pass
+            ANN.train_zero_shot(X_train, y_train, data_type, data_output, sizes[i])
+            prediction = ANN.test_zero_shot(X_test, y_test, data_type, data_output, sizes[i])
+
         
     f.close()
     

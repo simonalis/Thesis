@@ -20,8 +20,8 @@ def generateFeatures(s):
     start = time.time()
     count = 0
     
-    #sizes = list(np.arange(5,105,5))# vector length
-    sizes = [100]
+    sizes = fragment_creation.sizes #list(np.arange(5,105,5))# vector length
+    #sizes = [100]
     
     for k in sizes:
         size = k
