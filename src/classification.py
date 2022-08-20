@@ -37,7 +37,7 @@ warnings.filterwarnings("ignore")
 import fragment_creation
 import ANN
 
-modelKNN = False
+modelKNN = True
 modelNMSLib = True
 
 # generate a confusion matrix
@@ -136,6 +136,7 @@ def main(s,ratio,k,cross,conf_mat_plot):
         # label column
         test_Y = test.data_type
         if modelKNN:
+            print("modelKNN")
             model = KNeighborsClassifier(n_neighbors=k).fit(X,y)
             y_hat = model.predict(test_X)
             # 10 fold cross validation
@@ -163,7 +164,7 @@ def main(s,ratio,k,cross,conf_mat_plot):
             # df_confusion.to_csv(save_at+'confusion_matrix_for_vec_size_'+str(sizes[i])+'_sample_size_'+str(sample_size)+'.csv')
             if conf_mat_plot == 1:
                 plot_conf_matrix_and_save(cnf_matrix, class_names, sizes[i], sample_size, save_at)
-        elif modelNMSLib:
+        if modelNMSLib:
             print("modelNMSLib")
             train_base_path = save_at
             X_train, y_train,  X_test, y_test = X, y, test_X, test_Y #load_dataset(train_base_path)
