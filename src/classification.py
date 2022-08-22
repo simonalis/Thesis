@@ -31,13 +31,15 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn import tree
 from sklearn.neighbors import KNeighborsClassifier
 import os
+import LoadData
 import sys
 #from yellowbrick.classifier import ConfusionMatrix
 warnings.filterwarnings("ignore")
 import fragment_creation
 import ANN
+import feature_generation_all_fifty
 
-modelKNN = True
+modelKNN = False
 modelNMSLib = True
 
 # generate a confusion matrix
@@ -97,7 +99,7 @@ def plot_conf_matrix_and_save(cnf_matrix,class_names,size,sample_size,save_at):
 def main(s,ratio,k,cross,conf_mat_plot):
     
     save_at = fragment_creation.absolute_path + '/512_4/results_data/'
-    #sizes = [100]#list(np.arange(5,105,5))
+
     sizes = fragment_creation.sizes
     sample_size = s
     os.makedirs(save_at, exist_ok=True)
@@ -105,37 +107,44 @@ def main(s,ratio,k,cross,conf_mat_plot):
     f.write('vec_length'+ '\t' + 'accuracy' + '\t' + 'precision' + '\t'+ 'recall' + '\t'+'hamming_loss' + '\n')
     path = fragment_creation.absolute_path + '/512_4/feature_data/'
     for i in range(len(sizes)):
-        
-        last_data_column = sizes[i] #4095
-        class_column = sizes[i] #4096 
-        data = pd.read_csv(path+'feature_data_vec_' + str(class_column) +'_sample_'+str(sample_size)+'_4.csv', low_memory=False)
-        #orig_data = data
-        # select all pdf type rows: data.loc[data.data_type=='pdf']
-        type_count = data.groupby('data_type').size()
-        #print(type_count)
-        valid_types = type_count.loc[type_count >= 2]#type_count.loc[type_count >= sample_size] #sample_size is >=312, and it is amount of files per type?? why??
-        data = data.loc[data.data_type.isin(valid_types.index)]
-        #select first "sample_size" rows of type 0
-        #data = orig_data.loc[orig_data.data_type==valid_types.index[0]].head(sample_size)
-        #for k in range(1,len(valid_types)):
-        #    data=data.append(orig_data.loc[orig_data.data_type==valid_types.index[k]].head(sample_size))
-        # randomize the data
-        data = data.iloc[np.random.permutation(len(data))]
-        # reset the index
-        data = data.reset_index(drop=True)
-        
-        #data = data.drop('data_type', 1) # remove data type
-        data = data.fillna(method='ffill')
-        sz = data.shape    
-        train = data.iloc[:int(sz[0] * ratio), :]
-        test = data.iloc[int(sz[0] * ratio):, :]
-        X = train.iloc[:,0:last_data_column]
-        y = train.data_type
-        # separate feature and label 
-        test_X = test.iloc[:,0:last_data_column]
-        # label column
-        test_Y = test.data_type
+
+        last_data_column = sizes[i]  # 4095
+        class_column = sizes[i]  # 4096
         if modelKNN:
+
+            data = pd.read_csv(
+                path + 'feature_data_vec_' + str(class_column) + '_sample_' + str(sample_size) + '_4.csv',
+                low_memory=False)
+            # orig_data = data
+
+            # select all pdf type rows: data.loc[data.data_type=='pdf']
+            type_count = data.groupby('data_type').size()
+            # print(type_count)
+            valid_types = type_count.loc[
+                type_count >= 2]  # type_count.loc[type_count >= sample_size] #sample_size is >=312, and it is amount of files per type?? why??
+            data = data.loc[data.data_type.isin(valid_types.index)]
+
+            #select first "sample_size" rows of type 0
+            #data = orig_data.loc[orig_data.data_type==valid_types.index[0]].head(sample_size)
+            #for k in range(1,len(valid_types)):
+            #    data=data.append(orig_data.loc[orig_data.data_type==valid_types.index[k]].head(sample_size))
+            # randomize the data
+            data = data.iloc[np.random.permutation(len(data))]
+            # reset the index
+            data = data.reset_index(drop=True)
+
+            #data = data.drop('data_type', 1) # remove data type
+            data = data.fillna(method='ffill')
+            sz = data.shape
+            train = data.iloc[:int(sz[0] * ratio), :]
+            test = data.iloc[int(sz[0] * ratio):, :]
+            X = train.iloc[:,0:last_data_column]
+            y = train.data_type
+            # separate feature and label
+            test_X = test.iloc[:,0:last_data_column]
+            # label column
+            test_Y = test.data_type
+
             print("modelKNN")
             model = KNeighborsClassifier(n_neighbors=k).fit(X,y)
             y_hat = model.predict(test_X)
@@ -165,18 +174,40 @@ def main(s,ratio,k,cross,conf_mat_plot):
             if conf_mat_plot == 1:
                 plot_conf_matrix_and_save(cnf_matrix, class_names, sizes[i], sample_size, save_at)
         if modelNMSLib:
+            #_, _, X_val, y_val, X_test, y_test = LoadData.load_dataset(LoadData.train_base_path)
+            data = pd.read_csv(
+                str(feature_generation_all_fifty.saveTrainFeatureAt) + 'feature_data_vec_' + '_sample_' + str(sizes[i]) + '.csv',
+                low_memory=False)
+
+            test = pd.read_csv(
+                str(feature_generation_all_fifty.saveTestFeatureAt) + 'feature_data_vec_' + '_sample_' + str(sizes[i]) + '.csv',
+                low_memory=False)
+
+            train = data.iloc[:, :]
+
+            X = train.iloc[:, 0:last_data_column]
+            y = train.data_type
+
+            X_train, y_train = X, y
+
+            X_test = test .iloc[:, 0:last_data_column]
+            y_test = test.data_type
+
             print("modelNMSLib")
             train_base_path = save_at
-            X_train, y_train,  X_test, y_test = X, y, test_X, test_Y #load_dataset(train_base_path)
+            #For the original Byte to vex - use the below line
+            #X_train, y_train,  X_test, y_test = X, y, test_X, test_Y #load_dataset(train_base_path)
 
             data_type = "file_type_cnn_512_4_dense1_model_" + train_base_path.split("/")[-2]
             kk = save_at + "/output/{}/"
             data_output = kk.format(data_type)
+
             try:
                 os.makedirs(data_output, exist_ok=False)
             except:
                 pass
             ANN.train_zero_shot(X_train, y_train, data_type, data_output, sizes[i])
+
             prediction = ANN.test_zero_shot(X_test, y_test, data_type, data_output, sizes[i])
 
         

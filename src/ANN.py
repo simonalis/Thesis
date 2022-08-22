@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import multiprocessing
 
+from nltk import word_tokenize
 from sklearn.metrics import confusion_matrix, classification_report
 
 M = 15  # ooxml
@@ -55,6 +56,7 @@ def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
     #df_labels[["index", "label"]].to_csv(save_to_in, sep=",")
     pd.DataFrame({"index": range(0, len(df_labels)), "label": df_labels}).to_csv(save_to_in, sep=",")
 
+
 def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size):
     space_name = 'l2'
     #space_name = 'cosinesimil'
@@ -74,9 +76,9 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size):
         val = []
         # for ii in range(len(X_test.iloc[i])):
         #     val.append( X_test.iloc[i, ii])
-        val = X_test.iloc[i]
-        label = y_test.iloc[i]
-        nbrs = newIndex.knnQueryBatch(val.values.reshape(-1, 1), k=K, num_threads=num_threads)
+        val = X_test.iloc[i]#X_test.iloc[i]
+        label = y_test.iloc[i]#y_test.iloc[i]
+        nbrs = newIndex.knnQueryBatch(val.values.reshape(-1, 1), k=K, num_threads=num_threads)#newIndex.knnQueryBatch(val.values.reshape(-1, 1), k=K, num_threads=num_threads)
         for j in range(0, len(nbrs[0][0])):
        #     print("j", j)
             record = df_labels[df_labels["index"] == nbrs[0][0][np.argmin(nbrs[0][1])]]
@@ -85,12 +87,10 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size):
        #           record.get("label").values[0], "label", label)
             ans.append({"index": i, "label": label, "predicted": record.get("label").values[0],
                         "score": 1 - float(nbrs[0][1][np.argmin(nbrs[0][1])]) / max(nbrs[0][1])})
-
-
             break
 
     df = pd.DataFrame(ans)
-    df.to_csv(data_output + index_name + ".csv",sep=",")
+    df.to_csv(data_output + index_name + ".csv", sep=",")
     y_t = df["label"]
     y_p = df["predicted"]
     print(np.unique(y_p))
@@ -108,3 +108,20 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size):
         #print(target_names[ind], ind)
   #  print(dict_hist)
     return dict_hist
+
+# def pre_process_test_set(data):
+#     vocab = []
+#     count = 0
+#     for file in range(len(data)):
+#         count = count + 1
+#         data_temp = ''
+#         for j in range(len(data[file])):
+#             data_temp = data_temp + " " + str(int(data[file, j]))
+#         data_temp = data_temp.strip()
+#         data_temp = word_tokenize(data_temp)
+#         vocab.append(data_temp)
+#
+#         if (count % 200) == 0:
+#             print("Fragment X_test", count, "is processed.\n************************")
+#     arr = np.array(vocab)
+#     return arr
