@@ -4,7 +4,7 @@ This repository contains source codes for file fragment classification using
 <br>Byte2Vec modeling with KNN (modelKNN)
 <br>Byte2Vec modeling with ANN (modelNMSLib). 
 <br>The code can be used for  
-  <br>i).   creating fragment of first 512 from the files, &nbsp
+  <br>i).   creating fragment of first 512 from the files,
   <br>ii).  generating Byte2Vec models from the fragments, 
  <br>iii). generating features, and 
   <br>iv).  classifying an unknown fragments to its true type.
@@ -18,7 +18,7 @@ Execution guildelines
   <br><img width="280" alt="image" src="https://user-images.githubusercontent.com/104734787/185744057-cfbf8c5c-6557-4d18-bc73-d7f820a3c2ac.png">
 <li>512_4/dump
 <br>Stores file fragments of 512, after execution of fragment_creation.py
-<li>512_4/feature_data
+<li>512_4/train_feature_data, 512_4/test_feature_data
 <br>Stores generated features data, after execution of feature_generation_all.py
 <li>512_4/evaluation_data
 <br>Stores model evaluation data, after execution of the model_generation_all.py
