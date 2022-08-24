@@ -39,8 +39,8 @@ import fragment_creation
 import ANN
 import feature_generation_all_fifty
 
-modelKNN = False
-modelNMSLib = True
+modelKNN = True
+modelNMSLib = False
 
 # generate a confusion matrix
 def plot_confusion_matrix(cm, classes,
@@ -111,11 +111,29 @@ def main(s,ratio,k,cross,conf_mat_plot):
         last_data_column = sizes[i]  # 4095
         class_column = sizes[i]  # 4096
         if modelKNN:
-
             data = pd.read_csv(
-                path + 'feature_data_vec_' + str(class_column) + '_sample_' + str(sample_size) + '_4.csv',
+                str(feature_generation_all_fifty.saveTrainFeatureAt) + 'feature_data_vec_' + '_sample_' + str(
+                    sizes[i]) + '.csv',
                 low_memory=False)
-            # orig_data = data
+
+            test = pd.read_csv(
+                str(feature_generation_all_fifty.saveTestFeatureAt) + 'feature_data_vec_' + '_sample_' + str(
+                    sizes[i]) + '.csv',
+                low_memory=False)
+
+            train = data.iloc[:, :]
+
+            X = train.iloc[:, 0:last_data_column]
+            y = train.data_type
+
+            X_train, y_train = X, y
+
+            test_X = test.iloc[:, 0:last_data_column]
+            test_Y = test.data_type
+            # data = pd.read_csv(
+            #     path + 'feature_data_vec_' + str(class_column) + '_sample_' + str(sample_size) + '_4.csv',
+            #     low_memory=False)
+            # # orig_data = data
 
             # select all pdf type rows: data.loc[data.data_type=='pdf']
             type_count = data.groupby('data_type').size()
@@ -123,27 +141,27 @@ def main(s,ratio,k,cross,conf_mat_plot):
             valid_types = type_count.loc[
                 type_count >= 2]  # type_count.loc[type_count >= sample_size] #sample_size is >=312, and it is amount of files per type?? why??
             data = data.loc[data.data_type.isin(valid_types.index)]
-
-            #select first "sample_size" rows of type 0
-            #data = orig_data.loc[orig_data.data_type==valid_types.index[0]].head(sample_size)
-            #for k in range(1,len(valid_types)):
-            #    data=data.append(orig_data.loc[orig_data.data_type==valid_types.index[k]].head(sample_size))
-            # randomize the data
-            data = data.iloc[np.random.permutation(len(data))]
-            # reset the index
-            data = data.reset_index(drop=True)
-
-            #data = data.drop('data_type', 1) # remove data type
-            data = data.fillna(method='ffill')
-            sz = data.shape
-            train = data.iloc[:int(sz[0] * ratio), :]
-            test = data.iloc[int(sz[0] * ratio):, :]
-            X = train.iloc[:,0:last_data_column]
-            y = train.data_type
-            # separate feature and label
-            test_X = test.iloc[:,0:last_data_column]
-            # label column
-            test_Y = test.data_type
+            #
+            # #select first "sample_size" rows of type 0
+            # #data = orig_data.loc[orig_data.data_type==valid_types.index[0]].head(sample_size)
+            # #for k in range(1,len(valid_types)):
+            # #    data=data.append(orig_data.loc[orig_data.data_type==valid_types.index[k]].head(sample_size))
+            # # randomize the data
+            # data = data.iloc[np.random.permutation(len(data))]
+            # # reset the index
+            # data = data.reset_index(drop=True)
+            #
+            # #data = data.drop('data_type', 1) # remove data type
+            # data = data.fillna(method='ffill')
+            # sz = data.shape
+            # train = data.iloc[:int(sz[0] * ratio), :]
+            # test = data.iloc[int(sz[0] * ratio):, :]
+            # X = train.iloc[:,0:last_data_column]
+            # y = train.data_type
+            # # separate feature and label
+            # test_X = test.iloc[:,0:last_data_column]
+            # # label column
+            # test_Y = test.data_type
 
             print("modelKNN")
             model = KNeighborsClassifier(n_neighbors=k).fit(X,y)
@@ -190,7 +208,7 @@ def main(s,ratio,k,cross,conf_mat_plot):
 
             X_train, y_train = X, y
 
-            X_test = test .iloc[:, 0:last_data_column]
+            X_test = test.iloc[:, 0:last_data_column]
             y_test = test.data_type
 
             print("modelNMSLib")
@@ -206,9 +224,20 @@ def main(s,ratio,k,cross,conf_mat_plot):
                 os.makedirs(data_output, exist_ok=False)
             except:
                 pass
+
+            sz = data.shape
+            train = data.iloc[:int(sz[0] * ratio), :]
+            test = data.iloc[int(sz[0] * ratio):, :]
+            X_train = train.iloc[:, 0:last_data_column]
+            y_train = train.data_type
+            # separate feature and label
+            X_test = test.iloc[:, 0:last_data_column]
+            # label column
+            y_test = test.data_type
+
             ANN.train_zero_shot(X_train, y_train, data_type, data_output, sizes[i])
 
-            prediction = ANN.test_zero_shot(X_test, y_test, data_type, data_output, sizes[i])
+            prediction = ANN.test_zero_shot(X_test, y_test, data_type, data_output, sizes[i], s, save_at)
 
         
     f.close()
@@ -221,7 +250,7 @@ if __name__ == "__main__":
     # sample for each type. So total fragments = sample_size * file_type_count
     sample_size =512#[500,1000, 1500, 2000, 2500]
     # whether or not to plot confusion matrix in console and to .eps file
-    conf_mat_plot = 0
+    conf_mat_plot = 1
     ratio = 0.7
     k = 3
     cross = 10

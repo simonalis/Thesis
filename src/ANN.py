@@ -3,9 +3,9 @@ import nmslib
 import numpy as np
 import pandas as pd
 import multiprocessing
-
-from nltk import word_tokenize
 from sklearn.metrics import confusion_matrix, classification_report
+from nltk import word_tokenize
+import classification
 
 M = 15  # ooxml
 M = 64  # 64  # pe
@@ -20,7 +20,7 @@ target_count = 5 #how many classes for final classification
 def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
 
     # Number of neighbors
-    K = 100
+    K = 50
     # Space name should correspond to the space name
     # used for brute-force search
     space_name = 'l2'  # OOXML
@@ -41,10 +41,10 @@ def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
     # Querying
     query_qty = len(features)
     start = time.time()
-    #nbrs = index.knnQueryBatch(features, k=K, num_threads=num_threads)
-    #end = time.time()
-    #print('kNN time total=%f (sec), per query=%f (sec), per query adjusted for thread number=%f (sec)' %
-    #      (end - start, float(end - start) / query_qty, num_threads * float(end - start) / query_qty))
+    nbrs = index.knnQueryBatch(features, k=K, num_threads=num_threads)
+    end = time.time()
+    print('kNN time total=%f (sec), per query=%f (sec), per query adjusted for thread number=%f (sec)' %
+          (end - start, float(end - start) / query_qty, num_threads * float(end - start) / query_qty))
     print("save model")
     # Save a meta index and data
     name = data_type + "_" + str(output_v_size) + ".bin"
@@ -57,7 +57,7 @@ def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
     pd.DataFrame({"index": range(0, len(df_labels)), "label": df_labels}).to_csv(save_to_in, sep=",")
 
 
-def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size):
+def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size, sample_size, save_at):
     space_name = 'l2'
     #space_name = 'cosinesimil'
     newIndex = nmslib.init(method='hnsw', space=space_name, data_type=nmslib.DataType.DENSE_VECTOR)
@@ -94,10 +94,17 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size):
     y_t = df["label"]
     y_p = df["predicted"]
     print(np.unique(y_p))
-    confusion_matrix(y_t, y_p)#, labels=[np.unique(y_t)])
+    cnf_matrix = confusion_matrix(y_t, y_p)#, labels=[np.unique(y_t)])
     target_names = [np.unique(y_t)]
     print(target_names, [np.unique(y_p)])
     print(classification_report(y_t, y_p))#, target_names=target_names))
+
+    class_names = np.unique(y_t)
+    # cnf_matrix = confusion_matrix(y_test, y_t.values)
+    np.set_printoptions(precision=2)
+    conf_mat_plot = 1
+    if conf_mat_plot == 1:
+        classification.plot_conf_matrix_and_save(cnf_matrix, class_names, output_v_size, sample_size, save_at)
 
     unique, counts = np.unique(y_p, return_counts=True)
     dict_hist = dict(zip(unique, counts))
