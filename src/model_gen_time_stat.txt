@@ -46,3 +46,9 @@ vector_size	model_gen_time
 100	97.79228901863098
 vector_size	model_gen_time
 100	162.10464906692505
+vector_size	model_gen_time
+100	152.59460186958313
+vector_size	model_gen_time
+100	166.31932282447815
+vector_size	model_gen_time
+100	347.17325806617737
