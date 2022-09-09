@@ -12,7 +12,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import LabelBinarizer
 import pandas as pd
-import numpy as np
+import numpy as nanacodan
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, hamming_loss
 from sklearn.metrics import precision_score, recall_score, f1_score
 import glob
@@ -40,7 +40,7 @@ import ANN
 import feature_generation_all_fifty
 
 modelKNN = True
-modelNMSLib = False
+modelNMSLib = True
 
 # generate a confusion matrix
 def plot_confusion_matrix(cm, classes,
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     # sample for each type. So total fragments = sample_size * file_type_count
     sample_size =512#[500,1000, 1500, 2000, 2500]
     # whether or not to plot confusion matrix in console and to .eps file
-    conf_mat_plot = 1
+    conf_mat_plot = 0
     ratio = 0.7
     k = 3
     cross = 10

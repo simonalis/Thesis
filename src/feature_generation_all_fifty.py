@@ -20,6 +20,11 @@ def generate_features(saveAtPath, X_data, y_data, size, s):
     model_path = fragment_creation.absolute_path + "/" +str(s) + '/evaluation_data'#+'/'
 
     extlist = ['.0', '.1', '.2', '.3', '.4', '.5']
+    # extlist = []
+    # for i in range(0, 75):
+    #     extlist.append('.' + str(i))
+    # # print(extlist)
+
     # load models based on vector length
     model = gensim.models.KeyedVectors.load_word2vec_format(model_path + "/" + "byte2vec_model_vecsize_" + str(size))
     count = 0
@@ -79,7 +84,9 @@ def generateTestFeatures(s, X_test, y_test):
         # '.wp', '.xbm', '.xls', '.xlsx', '.xml', '.zip']
         # extlist = ['.swf', '.doc', '.ppt', '.pdf', '.html', '.csv', '.xls', '.txt', '.jpg', '.ps',
         #            '.wp', '.rtf', '.unk', '.gif', '.png', '.xml', '.gz', '.log', '.dbase3', '.f', '.', '.java']
-        #
+        # extlist = ['.swf', '.doc', '.ppt', '.pdf', '.html', '.csv', '.xls', '.txt', '.jpg',
+        #            '.rtf',  '.gif', '.png', '.xml', '.gz', '.log']#, '.dbase3', '.f', '.', '.java', '.ps', '.wp', '.unk',]#
+
         generate_features(saveTestFeatureAt, X_test, y_test, size, s)
 
 def generateTrainFeatures(s, X_train, y_train):

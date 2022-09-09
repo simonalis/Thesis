@@ -102,7 +102,7 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size, sample_si
     class_names = np.unique(y_t)
     # cnf_matrix = confusion_matrix(y_test, y_t.values)
     np.set_printoptions(precision=2)
-    conf_mat_plot = 1
+    conf_mat_plot = 0
     if conf_mat_plot == 1:
         classification.plot_conf_matrix_and_save(cnf_matrix, class_names, output_v_size, sample_size, save_at)
 
