@@ -19,7 +19,7 @@ saveTestFeatureAt = fragment_creation.absolute_path + "/" + s + '/test_feature_d
 def generate_features(saveAtPath, X_data, y_data, size, s):
     model_path = fragment_creation.absolute_path + "/" +str(s) + '/evaluation_data'#+'/'
 
-    extlist = ['.0', '.1', '.2', '.3', '.4', '.5']
+    extlist = ['.0', '.1', '.2', '.3', '.4']#, '.5']
     # extlist = []
     # for i in range(0, 75):
     #     extlist.append('.' + str(i))
@@ -45,10 +45,13 @@ def generate_features(saveAtPath, X_data, y_data, size, s):
             class_label = extlist.index('.' + str(y_data[file]))
 
             total_vec = size * [0]
-            for j in range(len(X_data[file])):
-                vec = model[str(X_data[file, j])]
+
+           # go byte byte inside the file and provide as input to a model
+            curr_file = X_data[file]
+            for j in range(len(curr_file)):
+                vec = model[str(curr_file[j])]
                 total_vec = total_vec + vec
-            mean_vec = total_vec / len(X_data[file])
+            mean_vec = total_vec / len(curr_file)
             file_data = mean_vec
 
             file_data = np.append(file_data, data_type)

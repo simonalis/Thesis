@@ -6,6 +6,7 @@ Created on Thu May 18 14:48:43 2017
 @author: Md Enamul Haque
 @inistitute: University of Louisian at Lafayette
 """
+import numpy as np
 import sklearn.model_selection
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
@@ -39,7 +40,7 @@ import fragment_creation
 import ANN
 import feature_generation_all_fifty
 
-modelKNN = True
+modelKNN = False
 modelNMSLib = True
 
 # generate a confusion matrix
@@ -110,30 +111,24 @@ def main(s,ratio,k,cross,conf_mat_plot):
 
         last_data_column = sizes[i]  # 4095
         class_column = sizes[i]  # 4096
+        data = pd.read_csv(
+            str(feature_generation_all_fifty.saveTrainFeatureAt) + 'feature_data_vec_' + '_sample_' + str(
+                sizes[i]) + '.csv',
+            low_memory=False)
+
+        test = pd.read_csv(
+            str(feature_generation_all_fifty.saveTestFeatureAt) + 'feature_data_vec_' + '_sample_' + str(
+                sizes[i]) + '.csv',
+            low_memory=False)
+
+        train = data.iloc[:, :]
+        X = train.iloc[:, 0:last_data_column]
+        y = train.data_type
+
+        test_X = test.iloc[:, 0:last_data_column]
+        test_Y = test.data_type
+
         if modelKNN:
-            data = pd.read_csv(
-                str(feature_generation_all_fifty.saveTrainFeatureAt) + 'feature_data_vec_' + '_sample_' + str(
-                    sizes[i]) + '.csv',
-                low_memory=False)
-
-            test = pd.read_csv(
-                str(feature_generation_all_fifty.saveTestFeatureAt) + 'feature_data_vec_' + '_sample_' + str(
-                    sizes[i]) + '.csv',
-                low_memory=False)
-
-            train = data.iloc[:, :]
-
-            X = train.iloc[:, 0:last_data_column]
-            y = train.data_type
-
-            X_train, y_train = X, y
-
-            test_X = test.iloc[:, 0:last_data_column]
-            test_Y = test.data_type
-            # data = pd.read_csv(
-            #     path + 'feature_data_vec_' + str(class_column) + '_sample_' + str(sample_size) + '_4.csv',
-            #     low_memory=False)
-            # # orig_data = data
 
             # select all pdf type rows: data.loc[data.data_type=='pdf']
             type_count = data.groupby('data_type').size()
@@ -141,27 +136,6 @@ def main(s,ratio,k,cross,conf_mat_plot):
             valid_types = type_count.loc[
                 type_count >= 2]  # type_count.loc[type_count >= sample_size] #sample_size is >=312, and it is amount of files per type?? why??
             data = data.loc[data.data_type.isin(valid_types.index)]
-            #
-            # #select first "sample_size" rows of type 0
-            # #data = orig_data.loc[orig_data.data_type==valid_types.index[0]].head(sample_size)
-            # #for k in range(1,len(valid_types)):
-            # #    data=data.append(orig_data.loc[orig_data.data_type==valid_types.index[k]].head(sample_size))
-            # # randomize the data
-            # data = data.iloc[np.random.permutation(len(data))]
-            # # reset the index
-            # data = data.reset_index(drop=True)
-            #
-            # #data = data.drop('data_type', 1) # remove data type
-            # data = data.fillna(method='ffill')
-            # sz = data.shape
-            # train = data.iloc[:int(sz[0] * ratio), :]
-            # test = data.iloc[int(sz[0] * ratio):, :]
-            # X = train.iloc[:,0:last_data_column]
-            # y = train.data_type
-            # # separate feature and label
-            # test_X = test.iloc[:,0:last_data_column]
-            # # label column
-            # test_Y = test.data_type
 
             print("modelKNN")
             model = KNeighborsClassifier(n_neighbors=k).fit(X,y)
@@ -177,7 +151,7 @@ def main(s,ratio,k,cross,conf_mat_plot):
             print("Avg. Accuracy:", accuracy)
             print("Precision:", precision)
             print("Recall:", recall)
-            f.write(str(sizes[i])+ '\t' + str(accuracy) + '\t' + str(precision) + '\t' + str(recall) + '\t'+ str(hamming_loss(test_Y, y_hat)) + '\n')
+            f.write(str(sizes[i]) + '\t' + str(accuracy) + '\t' + str(precision) + '\t' + str(recall) + '\t'+ str(hamming_loss(test_Y, y_hat)) + '\n')
             print("Done for vector length:"+ str(sizes[i]) + " and sample size:"+str(sample_size))
             print("*************************************")
             # Compute confusion matrix
@@ -192,50 +166,23 @@ def main(s,ratio,k,cross,conf_mat_plot):
             if conf_mat_plot == 1:
                 plot_conf_matrix_and_save(cnf_matrix, class_names, sizes[i], sample_size, save_at)
         if modelNMSLib:
-            #_, _, X_val, y_val, X_test, y_test = LoadData.load_dataset(LoadData.train_base_path)
-            data = pd.read_csv(
-                str(feature_generation_all_fifty.saveTrainFeatureAt) + 'feature_data_vec_' + '_sample_' + str(sizes[i]) + '.csv',
-                low_memory=False)
-
-            test = pd.read_csv(
-                str(feature_generation_all_fifty.saveTestFeatureAt) + 'feature_data_vec_' + '_sample_' + str(sizes[i]) + '.csv',
-                low_memory=False)
-
-            train = data.iloc[:, :]
-
-            X = train.iloc[:, 0:last_data_column]
-            y = train.data_type
-
-            X_train, y_train = X, y
-
-            X_test = test.iloc[:, 0:last_data_column]
-            y_test = test.data_type
-
             print("modelNMSLib")
             train_base_path = save_at
             #For the original Byte to vex - use the below line
             #X_train, y_train,  X_test, y_test = X, y, test_X, test_Y #load_dataset(train_base_path)
 
             data_type = "file_type_cnn_512_4_dense1_model_" + train_base_path.split("/")[-2]
-            kk = save_at + "/output/{}/"
+            kk = save_at + "output/{}/"
             data_output = kk.format(data_type)
 
             try:
                 os.makedirs(data_output, exist_ok=False)
             except:
                 pass
+            X_train, y_train = X, y
+            X_test, y_test = test_X, test_Y
 
-            sz = data.shape
-            train = data.iloc[:int(sz[0] * ratio), :]
-            test = data.iloc[int(sz[0] * ratio):, :]
-            X_train = train.iloc[:, 0:last_data_column]
-            y_train = train.data_type
-            # separate feature and label
-            X_test = test.iloc[:, 0:last_data_column]
-            # label column
-            y_test = test.data_type
-
-            ANN.train_zero_shot(X_train, y_train, data_type, data_output, sizes[i])
+           # ANN.train_zero_shot(X_train, y_train, data_type, data_output, sizes[i])
 
             prediction = ANN.test_zero_shot(X_test, y_test, data_type, data_output, sizes[i], s, save_at)
 
@@ -255,4 +202,4 @@ if __name__ == "__main__":
     k = 3
     cross = 10
     #for s in sample_size:
-    main(sample_size,ratio,k,cross,conf_mat_plot)
+    main(sample_size, ratio, k, cross, conf_mat_plot)

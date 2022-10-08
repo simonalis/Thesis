@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 from nltk import word_tokenize
 import classification
 
-M = 15  # ooxml
+#M = 15  # ooxml
 M = 64  # 64  # pe
 efC = 100
 print("number of cores:", multiprocessing.cpu_count())
@@ -20,7 +20,7 @@ target_count = 5 #how many classes for final classification
 def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
 
     # Number of neighbors
-    K = 50
+    K = 100
     # Space name should correspond to the space name
     # used for brute-force search
     space_name = 'l2'  # OOXML
@@ -41,10 +41,10 @@ def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
     # Querying
     query_qty = len(features)
     start = time.time()
-    nbrs = index.knnQueryBatch(features, k=K, num_threads=num_threads)
-    end = time.time()
-    print('kNN time total=%f (sec), per query=%f (sec), per query adjusted for thread number=%f (sec)' %
-          (end - start, float(end - start) / query_qty, num_threads * float(end - start) / query_qty))
+    # nbrs = index.knnQueryBatch(features, k=K, num_threads=num_threads)
+    # end = time.time()
+    # print('kNN time total=%f (sec), per query=%f (sec), per query adjusted for thread number=%f (sec)' %
+    #       (end - start, float(end - start) / query_qty, num_threads * float(end - start) / query_qty))
     print("save model")
     # Save a meta index and data
     name = data_type + "_" + str(output_v_size) + ".bin"
@@ -55,9 +55,10 @@ def train_zero_shot(features, df_labels, data_type, data_output, output_v_size):
     # save index labels
     #df_labels[["index", "label"]].to_csv(save_to_in, sep=",")
     pd.DataFrame({"index": range(0, len(df_labels)), "label": df_labels}).to_csv(save_to_in, sep=",")
+    print("train save_to bin", save_to)
+    print("train save_to in", save_to_in)
 
-
-def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size, sample_size, save_at):
+def test_zero_shot(X_test, y_test, data_type, data_output, output_v_size, sample_size, save_at):
     space_name = 'l2'
     #space_name = 'cosinesimil'
     newIndex = nmslib.init(method='hnsw', space=space_name, data_type=nmslib.DataType.DENSE_VECTOR)
@@ -66,7 +67,13 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size, sample_si
     load_path = data_output + name
     newIndex.loadIndex(load_path, load_data=False)
     index_name = data_type + "_" + str(output_v_size) + ".in"
-    df_labels = pd.read_csv(data_output + index_name, sep=",")
+    print("test read from bin",load_path)
+    print("test read from in", data_output + index_name)
+    df_labels_train = pd.read_csv(data_output + index_name, sep=",")
+    # df_test_labels_fname = data_output + "test_labels" + "_" + str(output_v_size) + ".in"
+    # pd.DataFrame({"index": range(0, len(y_test)), "label": y_test}).to_csv(df_test_labels_fname, sep=",")
+    # df_labels = pd.read_csv(df_test_labels_fname, sep=",")
+
     # Setting query-time parameters and querying
     print('Setting query-time parameters', query_time_params)
     newIndex.setQueryTimeParams(query_time_params)
@@ -79,18 +86,23 @@ def test_zero_shot(X_test,y_test,data_type,data_output, output_v_size, sample_si
         val = X_test.iloc[i]#X_test.iloc[i]
         label = y_test.iloc[i]#y_test.iloc[i]
         nbrs = newIndex.knnQueryBatch(val.values.reshape(-1, 1), k=K, num_threads=num_threads)#newIndex.knnQueryBatch(val.values.reshape(-1, 1), k=K, num_threads=num_threads)
+
+       # label_index = y_test.loc[[i]]
         for j in range(0, len(nbrs[0][0])):
-       #     print("j", j)
-            record = df_labels[df_labels["index"] == nbrs[0][0][np.argmin(nbrs[0][1])]]
+            find_ix = np.argmin(nbrs[0][1])
+            idx = df_labels_train["index"] == nbrs[0][0][find_ix]
+            record_train = df_labels_train[idx]
+
             #record = df_labels[df_labels["index"] == nbrs[0][0][np.argmax(nbrs[0][1])]] # take the highest distance score location and from that gety the index
        #     print("score:", 1 - float(nbrs[0][1][np.argmin(nbrs[0][1])]) / max(nbrs[0][1]), "predicted:",
        #           record.get("label").values[0], "label", label)
-            ans.append({"index": i, "label": label, "predicted": record.get("label").values[0],
-                        "score": 1 - float(nbrs[0][1][np.argmin(nbrs[0][1])]) / max(nbrs[0][1])})
+            ans.append({"index": i, "label": label, "predicted": record_train.get("label").values[0],
+                        "score": 1 - float(nbrs[0][1][find_ix]) / max(nbrs[0][1])})
             break
 
     df = pd.DataFrame(ans)
     df.to_csv(data_output + index_name + ".csv", sep=",")
+    print("test save results", data_output + index_name + ".csv")
     y_t = df["label"]
     y_p = df["predicted"]
     print(np.unique(y_p))

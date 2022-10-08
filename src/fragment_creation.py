@@ -24,6 +24,7 @@ find chunk of data from within a block.
     length: size of the chunk
 """
 absolute_path = os.path.dirname(os.path.realpath(__file__))
+data_set_type = "512_4"#"512_4"
 default_size = True
 if default_size == True:
     sizes = [100]
