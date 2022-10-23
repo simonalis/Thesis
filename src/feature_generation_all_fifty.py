@@ -11,7 +11,7 @@ import numpy as np
 import fragment_creation
 import LoadData
 
-s = '512_4'
+s = fragment_creation.data_set_type #'512_4'
 
 saveTrainFeatureAt = fragment_creation.absolute_path + "/" + s + '/train_feature_data/'
 saveTestFeatureAt = fragment_creation.absolute_path + "/" + s + '/test_feature_data/'
@@ -19,10 +19,10 @@ saveTestFeatureAt = fragment_creation.absolute_path + "/" + s + '/test_feature_d
 def generate_features(saveAtPath, X_data, y_data, size, s):
     model_path = fragment_creation.absolute_path + "/" +str(s) + '/evaluation_data'#+'/'
 
-    extlist = ['.0', '.1', '.2', '.3', '.4', '.5']
-    # extlist = []
-    # for i in range(0, 75):
-    #     extlist.append('.' + str(i))
+    #extlist = ['.0', '.1', '.2', '.3', '.4']#, '.5']
+    extlist = []
+    for i in range(0, 75):
+        extlist.append('.' + str(i))
     # # print(extlist)
 
     # load models based on vector length

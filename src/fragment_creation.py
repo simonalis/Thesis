@@ -24,6 +24,8 @@ find chunk of data from within a block.
     length: size of the chunk
 """
 absolute_path = os.path.dirname(os.path.realpath(__file__))
+data_set_type = "512_4"#"512_1"#"512_4"
+
 default_size = True
 if default_size == True:
     sizes = [100]
@@ -49,7 +51,7 @@ def split_by_blocks(infile, n, marker, save_path):
     s = np.arange(split_count)
 
     # a folder with mixed types of files to use as part of the last fragment
-    loc = absolute_path + "/512_4/mixed"
+    loc = absolute_path + "/" + data_set_type + "/mixed"
 
     with open(infile, 'rb') as f:
         k = 0
@@ -117,8 +119,8 @@ if __name__ == "__main__":
     local = 1  # 0=online, 1=local
 
     if local == 1:
-        folder_name = absolute_path + '/512_4/000'
-        tosave_path = absolute_path + '/512_4/dump'
+        folder_name = absolute_path + '/' + data_set_type + '/000'
+        tosave_path = absolute_path + '/' + data_set_type + '/dump'
     else:
         folder_name = '/govdocs_files_unzipped/'  # location of unzipped files from govdocs1
         tosave_path = '/fragment_data/'  # location to save fragments
